@@ -531,9 +531,10 @@ You probably need to add additional commands to Fire below.
 
 
 def main():
-    fire.Fire({"check": check_qa_pairs})
-    fire.Fire({"generate_all": generate_all_qa_pairs})
-
+    fire.Fire({
+            "check": check_qa_pairs,
+            "generate_all": generate_all_qa_pairs  # <-- The new command name
+        })
 
 if __name__ == "__main__":
     main()
