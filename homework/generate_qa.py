@@ -45,8 +45,18 @@ def extract_frame_info(image_path: str) -> tuple[int, int]:
     # Format is typically: XXXXX_YY_im.png where XXXXX is frame_id and YY is view_index
     parts = filename.split("_")
     if len(parts) >= 2:
-        frame_id = int(parts[0], 16)  # Convert hex to decimal
-        view_index = int(parts[1])
+        # Some datasets use hex frame id — keep previous behaviour
+        try:
+            frame_id = int(parts[0], 16)  # Convert hex to decimal
+        except Exception:
+            try:
+                frame_id = int(parts[0])
+            except Exception:
+                frame_id = 0
+        try:
+            view_index = int(parts[1])
+        except Exception:
+            view_index = 0
         return frame_id, view_index
     return 0, 0  # Default values if parsing fails
 
@@ -136,190 +146,292 @@ def extract_kart_objects(
 ) -> list:
     """
     Extract kart objects from the info.json file, including their center points and identify the center kart.
-    """
+    Filters out karts that are out of sight (outside the image boundaries).
 
+    Args:
+        info_path: Path to the corresponding info.json file
+        view_index: Index of the view to analyze
+        img_width: Width of the image (default: 150)
+        img_height: Height of the image (default: 100)
+
+    Returns:
+        List of kart objects, each containing:
+        - instance_id: The track ID of the kart
+        - kart_name: The name of the kart
+        - center: (x, y) coordinates of the kart's center (scaled to img_width/img_height)
+        - is_center_kart: Boolean indicating if this is the kart closest to image center
+    """
     with open(info_path) as f:
         info = json.load(f)
 
-    detections_all_views = info["detections"]
+    # defensive checks
+    if "detections" not in info:
+        raise KeyError("info.json missing 'detections' key")
 
-    if view_index >= len(detections_all_views):
-        return []
+    if view_index >= len(info["detections"]):
+        raise IndexError(f"view_index {view_index} out of range in info.json detections")
 
-    detections = detections_all_views[view_index]
+    detections = info["detections"][view_index]
 
-    scale_x = img_width / ORIGINAL_WIDTH
-    scale_y = img_height / ORIGINAL_HEIGHT
+    # Attempt to load names for instances if present
+    instance_names = {}
+    # known possible keys that might hold names
+    for k in ("instances", "objects", "labels", "names"):
+        if k in info and isinstance(info[k], dict):
+            # assume mapping id->name or str keys
+            for tid, val in info[k].items():
+                try:
+                    instance_names[int(tid)] = str(val)
+                except Exception:
+                    # if keys are not ints, try parsing
+                    try:
+                        instance_names[int(val.get("id"))] = val.get("name", f"kart_{val.get('id')}")
+                    except Exception:
+                        continue
 
-    karts = []
-    for det in detections:
-        class_id, track_id, x1, y1, x2, y2 = det
-        class_id = int(class_id)
-        track_id = int(track_id)
+    # fallback: sometimes the info contains a list of objects with properties
+    if not instance_names and "objects" in info and isinstance(info["objects"], list):
+        for obj in info["objects"]:
+            try:
+                tid = int(obj.get("track_id", obj.get("id", -1)))
+                name = obj.get("name") or obj.get("label")
+                if tid >= 0 and name:
+                    instance_names[tid] = name
+            except Exception:
+                continue
 
-        # Only class_id = 1 (karts)
+    kart_list = []
+    for detection in detections:
+        # detection format: [class_id, track_id, x1, y1, x2, y2]
+        try:
+            class_id, track_id, x1, y1, x2, y2 = detection
+            class_id = int(class_id)
+            track_id = int(track_id)
+        except Exception:
+            # more defensive parsing
+            if len(detection) >= 6:
+                class_id = int(detection[0])
+                track_id = int(detection[1])
+                x1, y1, x2, y2 = map(float, detection[2:6])
+            else:
+                continue
+
         if class_id != 1:
+            continue  # only karts
+
+        # scale coordinates from ORIGINAL_WIDTH/HEIGHT to desired img_width/img_height
+        scale_x = img_width / ORIGINAL_WIDTH
+        scale_y = img_height / ORIGINAL_HEIGHT
+        cx = (x1 + x2) / 2.0 * scale_x
+        cy = (y1 + y2) / 2.0 * scale_y
+        w = (x2 - x1) * scale_x
+        h = (y2 - y1) * scale_y
+
+        # filter by size and visibility
+        if w < min_box_size or h < min_box_size:
+            continue
+        # if entirely out of frame, skip
+        if (x2 * scale_x) < 0 or (x1 * scale_x) > img_width or (y2 * scale_y) < 0 or (y1 * scale_y) > img_height:
             continue
 
-        # Scale box
-        x1_s = int(x1 * scale_x)
-        y1_s = int(y1 * scale_y)
-        x2_s = int(x2 * scale_x)
-        y2_s = int(y2 * scale_y)
+        name = instance_names.get(track_id, f"kart_{track_id}")
 
-        # Skip too small or out-of-bounds
-        if (x2_s - x1_s) < min_box_size or (y2_s - y1_s) < min_box_size:
-            continue
-        if x2_s < 0 or x1_s > img_width or y2_s < 0 or y1_s > img_height:
-            continue
+        kart_list.append(
+            {
+                "instance_id": int(track_id),
+                "kart_name": str(name),
+                "center": (float(cx), float(cy)),
+                "bbox": (float(x1 * scale_x), float(y1 * scale_y), float(x2 * scale_x), float(y2 * scale_y)),
+            }
+        )
 
-        # Compute center
-        cx = (x1_s + x2_s) / 2
-        cy = (y1_s + y2_s) / 2
+    # identify ego kart:
+    ego_index = None
+    # prefer track_id == 0 (common convention in your draw function)
+    for idx, k in enumerate(kart_list):
+        if k["instance_id"] == 0:
+            ego_index = idx
+            break
 
-        # Track ID is the unique instance
-        kart_name = f"Kart {track_id}"
+    # otherwise choose kart closest to image center
+    if ego_index is None and kart_list:
+        img_cx = img_width / 2.0
+        img_cy = img_height / 2.0
+        dists = [((k["center"][0] - img_cx) ** 2 + (k["center"][1] - img_cy) ** 2) for k in kart_list]
+        ego_index = int(np.argmin(dists))
 
-        karts.append({
-            "instance_id": track_id,
-            "kart_name": kart_name,
-            "center": (cx, cy),
-            "is_center_kart": False,
-        })
+    # add is_center_kart flag
+    for idx, k in enumerate(kart_list):
+        k["is_center_kart"] = (idx == ego_index)
 
-    # Determine ego car = closest to image center
-    if karts:
-        center_x = img_width / 2
-        center_y = img_height / 2
-
-        distances = [
-            ((k["center"][0] - center_x) ** 2 + (k["center"][1] - center_y) ** 2, idx)
-            for idx, k in enumerate(karts)
-        ]
-        _, min_idx = min(distances)
-        karts[min_idx]["is_center_kart"] = True
-
-    return karts
+    return kart_list
 
 
 def extract_track_info(info_path: str) -> str:
+    """
+    Extract track information from the info.json file.
+
+    Args:
+        info_path: Path to the info.json file
+
+    Returns:
+        Track name as a string (fallback 'unknown' if not found)
+    """
     with open(info_path) as f:
         info = json.load(f)
 
-    # Common naming patterns
-    if "track" in info:
-        return info["track"]
-    if "track_name" in info:
-        return info["track_name"]
+    # Try common keys
+    for key in ("track_name", "track", "map", "level"):
+        if key in info and isinstance(info[key], str):
+            return info[key]
 
-    return "Unknown Track"
+    # Some files might nest track info
+    if "meta" in info and isinstance(info["meta"], dict):
+        for key in ("track_name", "track", "map", "level", "name"):
+            if key in info["meta"] and isinstance(info["meta"][key], str):
+                return info["meta"][key]
 
+    # fallback: maybe a filename is specified
+    for key in ("track_file", "track_path"):
+        if key in info and isinstance(info[key], str):
+            # strip path and extension
+            return Path(info[key]).stem
+
+    return "unknown"
+
+
+def _relative_position(ego_center, other_center, x_thresh=5.0, y_thresh=5.0):
+    """
+    Return (left/right/center_x, front/behind/center_y) relative labels.
+    x_thresh and y_thresh are pixel thresholds for classifying as 'aligned' in that axis.
+    """
+    ex, ey = ego_center
+    ox, oy = other_center
+    dx = ox - ex
+    dy = oy - ey
+
+    # left/right: other x < ego x => left
+    if abs(dx) <= x_thresh:
+        lr = "aligned"
+    elif dx < 0:
+        lr = "left"
+    else:
+        lr = "right"
+
+    # front/behind: other y < ego y => front (smaller y is towards top)
+    if abs(dy) <= y_thresh:
+        fb = "aligned"
+    elif oy < ey:
+        fb = "front"
+    else:
+        fb = "behind"
+
+    # combined
+    if lr == "aligned" and fb == "aligned":
+        combined = "same position"
+    elif lr == "aligned":
+        combined = fb
+    elif fb == "aligned":
+        combined = lr
+    else:
+        combined = f"{fb}-{lr}"  # e.g. front-left
+
+    return lr, fb, combined
 
 
 def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img_height: int = 100) -> list:
+    """
+    Generate question-answer pairs for a given view.
+
+    Args:
+        info_path: Path to the info.json file
+        view_index: Index of the view to analyze
+        img_width: Width of the image (default: 150)
+        img_height: Height of the image (default: 100)
+
+    Returns:
+        List of dictionaries, each containing a question and answer
+    """
     qa = []
 
-    karts = extract_kart_objects(info_path, view_index, img_width, img_height)
-    track_name = extract_track_info(info_path)
+    kart_list = extract_kart_objects(info_path, view_index, img_width=img_width, img_height=img_height)
 
-    if not karts:
-        return [{"question": "Are there any karts visible?", "answer": "No."}]
+    # find ego
+    ego = None
+    for k in kart_list:
+        if k.get("is_center_kart", False):
+            ego = k
+            break
 
-    # Identify ego car
-    ego = [k for k in karts if k["is_center_kart"]][0]
-    ego_id = ego["instance_id"]
-    ego_name = ego["kart_name"]
-    ego_x, ego_y = ego["center"]
-
-    # ---------------------------
     # 1. Ego car question
-    # ---------------------------
-    qa.append({
-        "question": "Which kart is the ego car?",
-        "answer": ego_name,
-    })
+    if ego is not None:
+        q = "What kart is the ego car?"
+        a = ego["kart_name"]
+        qa.append({"question": q, "answer": a})
 
-    # ---------------------------
-    # 2. Total karts
-    # ---------------------------
-    qa.append({
-        "question": "How many karts are in the scene?",
-        "answer": str(len(karts)),
-    })
+    # 2. Total karts question
+    total = len(kart_list)
+    qa.append({"question": "How many karts are there in the scenario?", "answer": str(total)})
 
-    # ---------------------------
-    # 3. Track information
-    # ---------------------------
-    qa.append({
-        "question": "What track is this?",
-        "answer": track_name,
-    })
+    # 3. Track information question
+    track_name = extract_track_info(info_path)
+    qa.append({"question": "What track is this?", "answer": track_name})
 
-    # ---------------------------
-    # 4. Relative positions
-    # ---------------------------
+    # if no ego or only ego, skip relative questions
+    if ego is None:
+        return qa
+
+    # prepare counters for counting questions
     left_count = 0
     right_count = 0
     front_count = 0
     behind_count = 0
 
-    for k in karts:
-        if k["is_center_kart"]:
+    # thresholds in pixels relative to img size
+    x_thresh = max(3.0, img_width * 0.03)
+    y_thresh = max(3.0, img_height * 0.03)
+
+    for k in kart_list:
+        if k["instance_id"] == ego["instance_id"]:
             continue
 
-        name = k["kart_name"]
-        x, y = k["center"]
+        lr, fb, combined = _relative_position(ego["center"], k["center"], x_thresh=x_thresh, y_thresh=y_thresh)
 
-        horizontal = "left" if x < ego_x else "right"
-        vertical = "in front" if y < ego_y else "behind"
+        # increment counters
+        if lr == "left":
+            left_count += 1
+        elif lr == "right":
+            right_count += 1
+        if fb == "front":
+            front_count += 1
+        elif fb == "behind":
+            behind_count += 1
 
-        # Counting
-        if horizontal == "left": left_count += 1
-        else: right_count += 1
-        if vertical == "in front": front_count += 1
-        else: behind_count += 1
+        # 4. Relative position questions for each kart
+        # Is {kart_name} to the left or right of the ego car?
+        qa.append(
+            {
+                "question": f"Is {k['kart_name']} to the left or right of the ego car?",
+                "answer": lr if lr != "aligned" else "aligned",
+            }
+        )
+        # Is {kart_name} in front of or behind the ego car?
+        qa.append(
+            {
+                "question": f"Is {k['kart_name']} in front of or behind the ego car?",
+                "answer": fb if fb != "aligned" else "aligned",
+            }
+        )
+        # Where is {kart_name} relative to the ego car?
+        qa.append({"question": f"Where is {k['kart_name']} relative to the ego car?", "answer": combined})
 
-        # Left–right
-        qa.append({
-            "question": f"Is {name} to the left or right of the ego car?",
-            "answer": horizontal,
-        })
-
-        # Front–behind
-        qa.append({
-            "question": f"Is {name} in front of or behind the ego car?",
-            "answer": vertical,
-        })
-
-        # Combined spatial relation
-        qa.append({
-            "question": f"Where is {name} relative to the ego car?",
-            "answer": f"{horizontal} and {vertical}",
-        })
-
-    # ---------------------------
     # 5. Counting questions
-    # ---------------------------
-
-    qa.append({
-        "question": "How many karts are to the left of the ego car?",
-        "answer": str(left_count),
-    })
-    qa.append({
-        "question": "How many karts are to the right of the ego car?",
-        "answer": str(right_count),
-    })
-    qa.append({
-        "question": "How many karts are in front of the ego car?",
-        "answer": str(front_count),
-    })
-    qa.append({
-        "question": "How many karts are behind the ego car?",
-        "answer": str(behind_count),
-    })
+    qa.append({"question": "How many karts are to the left of the ego car?", "answer": str(left_count)})
+    qa.append({"question": "How many karts are to the right of the ego car?", "answer": str(right_count)})
+    qa.append({"question": "How many karts are in front of the ego car?", "answer": str(front_count)})
+    qa.append({"question": "How many karts are behind the ego car?", "answer": str(behind_count)})
 
     return qa
-
 
 
 def check_qa_pairs(info_file: str, view_index: int):
@@ -355,6 +467,59 @@ def check_qa_pairs(info_file: str, view_index: int):
         print(f"Q: {qa['question']}")
         print(f"A: {qa['answer']}")
         print("-" * 50)
+
+def generate_all_qa_pairs(data_dir: str, output_file: str, img_width: int = 150, img_height: int = 100):
+    """
+    Generate QA pairs for all info.json files in a directory and save them to a JSON file.
+
+    Args:
+        data_dir: Directory containing *_info.json files
+        output_file: Path to save QA pairs JSON
+        img_width: Width for kart center calculations
+        img_height: Height for kart center calculations
+    """
+    data_dir = Path(data_dir)
+    all_qa_pairs = []
+
+    info_files = list(data_dir.glob("*_info.json"))
+    if not info_files:
+        print(f"No info.json files found in {data_dir}")
+        return
+
+    for info_file in info_files:
+        with open(info_file) as f:
+            info = json.load(f)
+
+        num_views = len(info.get("detections", []))
+        base_name = info_file.stem.replace("_info", "")
+
+        for view_index in range(num_views):
+            image_file_candidates = list(data_dir.glob(f"{base_name}_{view_index:02d}_im.*"))
+            if not image_file_candidates:
+                continue
+            image_file = str(image_file_candidates[0])
+
+            # visualize detections
+            annotated_image = draw_detections(image_file, str(info_file))
+            plt.figure(figsize=(12, 8))
+            plt.imshow(annotated_image)
+            plt.axis("off")
+            plt.title(f"{base_name} view {view_index}")
+            plt.show()
+
+            # generate QA pairs
+            qa_pairs = generate_qa_pairs(str(info_file), view_index, img_width=img_width, img_height=img_height)
+
+            # add image filename to each QA pair
+            for qa in qa_pairs:
+                qa["image_file"] = Path(image_file).as_posix()
+
+            all_qa_pairs.extend(qa_pairs)
+
+    # write to output JSON
+    with open(output_file, "w") as f:
+        json.dump(all_qa_pairs, f, indent=2)
+    print(f"Saved {len(all_qa_pairs)} QA pairs to {output_file}")
 
 
 """
