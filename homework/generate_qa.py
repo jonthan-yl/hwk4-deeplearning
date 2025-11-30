@@ -532,6 +532,7 @@ You probably need to add additional commands to Fire below.
 
 def main():
     fire.Fire({"check": check_qa_pairs})
+    fire.Fire({"generate_all": generate_all_qa_pairs})
 
 
 if __name__ == "__main__":
