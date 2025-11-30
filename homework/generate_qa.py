@@ -393,6 +393,56 @@ def generate_qa_pairs(info_path: str, view_index: int, img_width: int = 150, img
     return qa_pairs
 
 
+def generate_dataset(split: str = "train", output_file: str | None = None, data_dir: str | None = None, max_files: int | None = None, max_views_per_file: int | None = None) -> str:
+    """
+    Generate a combined QA pairs file from the info JSONs in `data/<split>`.
+
+    Args:
+        split: The data split (train, valid, etc.)
+        output_file: The path to write the combined JSON file. Defaults to data/<split>/balanced_qa_pairs.json
+        data_dir: Base data directory. Defaults to the repo's data folder.
+        max_files: Optional limit on how many info files to process.
+        max_views_per_file: Optional limit of views to process per info file.
+
+    Returns: Path to the output JSON file.
+    """
+    root_data_dir = Path(data_dir) if data_dir is not None else (Path(__file__).parent.parent / "data")
+    split_dir = root_data_dir / split
+    if output_file is None:
+        output_file = split_dir / "balanced_qa_pairs.json"
+    else:
+        output_file = Path(output_file)
+
+    # Find all info.json files in split_dir
+    info_files = sorted(split_dir.glob("*_info.json"))
+    if max_files is not None:
+        info_files = info_files[:max_files]
+
+    all_qas = []
+    for info_path in info_files:
+        with open(info_path) as f:
+            info = json.load(f)
+
+        num_views = len(info.get("detections", []))
+        if max_views_per_file is not None:
+            views_to_process = range(min(num_views, max_views_per_file))
+        else:
+            views_to_process = range(num_views)
+
+        for v in views_to_process:
+            qas = generate_qa_pairs(str(info_path), v)
+            # Each returned entry already contains field 'image_file' which is relative like 'train/...'
+            all_qas.extend(qas)
+
+    # Write JSON out
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_file, "w") as out_f:
+        json.dump(all_qas, out_f, indent=2)
+
+    print(f"Wrote {len(all_qas)} QA pairs to {output_file}")
+    return str(output_file)
+
+
 def check_qa_pairs(info_file: str, view_index: int):
     """
     Check QA pairs for a specific info file and view index.
@@ -437,7 +487,7 @@ You probably need to add additional commands to Fire below.
 
 
 def main():
-    fire.Fire({"check": check_qa_pairs})
+    fire.Fire({"check": check_qa_pairs, "generate": generate_dataset})
 
 
 if __name__ == "__main__":
