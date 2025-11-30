@@ -2,7 +2,6 @@ import json
 from pathlib import Path
 
 import fire
-import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image, ImageDraw
 
@@ -451,12 +450,6 @@ def check_qa_pairs(info_file: str, view_index: int):
     annotated_image = draw_detections(str(image_file), info_file)
 
     # Display the image
-    plt.figure(figsize=(12, 8))
-    plt.imshow(annotated_image)
-    plt.axis("off")
-    plt.title(f"Frame {extract_frame_info(str(image_file))[0]}, View {view_index}")
-    plt.show()
-
     # Generate QA pairs
     qa_pairs = generate_qa_pairs(info_file, view_index)
 
@@ -501,12 +494,6 @@ def generate_all_qa_pairs(data_dir: str, output_file: str, img_width: int = 150,
 
             # visualize detections
             annotated_image = draw_detections(image_file, str(info_file))
-            plt.figure(figsize=(12, 8))
-            plt.imshow(annotated_image)
-            plt.axis("off")
-            plt.title(f"{base_name} view {view_index}")
-            plt.show()
-
             # generate QA pairs
             qa_pairs = generate_qa_pairs(str(info_file), view_index, img_width=img_width, img_height=img_height)
 
