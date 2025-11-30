@@ -1,0 +1,558 @@
+[
+  {
+    "image_file": "train/00000_00_im.jpg",
+    "caption": "nolok is the ego car."
+  },
+  {
+    "image_file": "train/00000_00_im.jpg",
+    "caption": "There are 4 karts in the scene."
+  },
+  {
+    "image_file": "train/00000_00_im.jpg",
+    "caption": "The track is fortmagma."
+  },
+  {
+    "image_file": "train/00000_00_im.jpg",
+    "caption": "sara_the_wizard is front and left of the ego car."
+  },
+  {
+    "image_file": "train/00000_00_im.jpg",
+    "caption": "konqi is front and left of the ego car."
+  },
+  {
+    "image_file": "train/00000_01_im.jpg",
+    "caption": "There are 2 karts in the scene."
+  },
+  {
+    "image_file": "train/00000_01_im.jpg",
+    "caption": "The track is fortmagma."
+  },
+  {
+    "image_file": "train/00001_00_im.jpg",
+    "caption": "kiki is the ego car."
+  },
+  {
+    "image_file": "train/00001_00_im.jpg",
+    "caption": "There are 4 karts in the scene."
+  },
+  {
+    "image_file": "train/00001_00_im.jpg",
+    "caption": "The track is black_forest."
+  },
+  {
+    "image_file": "train/00001_00_im.jpg",
+    "caption": "wilber is front and left of the ego car."
+  },
+  {
+    "image_file": "train/00001_00_im.jpg",
+    "caption": "beastie is front and left of the ego car."
+  },
+  {
+    "image_file": "train/00001_01_im.jpg",
+    "caption": "There are 1 karts in the scene."
+  },
+  {
+    "image_file": "train/00001_01_im.jpg",
+    "caption": "The track is black_forest."
+  },
+  {
+    "image_file": "train/00002_00_im.jpg",
+    "caption": "suzanne is the ego car."
+  },
+  {
+    "image_file": "train/00002_00_im.jpg",
+    "caption": "There are 3 karts in the scene."
+  },
+  {
+    "image_file": "train/00002_00_im.jpg",
+    "caption": "The track is ravenbridge_mansion."
+  },
+  {
+    "image_file": "train/00002_00_im.jpg",
+    "caption": "kiki is front and right of the ego car."
+  },
+  {
+    "image_file": "train/00002_00_im.jpg",
+    "caption": "hexley is front and left of the ego car."
+  },
+  {
+    "image_file": "train/00002_01_im.jpg",
+    "caption": "There are 4 karts in the scene."
+  },
+  {
+    "image_file": "train/00002_01_im.jpg",
+    "caption": "The track is ravenbridge_mansion."
+  },
+  {
+    "image_file": "train/00003_00_im.jpg",
+    "caption": "nolok is the ego car."
+  },
+  {
+    "image_file": "train/00003_00_im.jpg",
+    "caption": "There are 1 karts in the scene."
+  },
+  {
+    "image_file": "train/00003_00_im.jpg",
+    "caption": "The track is zengarden."
+  },
+  {
+    "image_file": "train/00003_01_im.jpg",
+    "caption": "There are 3 karts in the scene."
+  },
+  {
+    "image_file": "train/00003_01_im.jpg",
+    "caption": "The track is zengarden."
+  },
+  {
+    "image_file": "train/00004_00_im.jpg",
+    "caption": "konqi is the ego car."
+  },
+  {
+    "image_file": "train/00004_00_im.jpg",
+    "caption": "There are 1 karts in the scene."
+  },
+  {
+    "image_file": "train/00004_00_im.jpg",
+    "caption": "The track is scotland."
+  },
+  {
+    "image_file": "train/00004_01_im.jpg",
+    "caption": "There are 3 karts in the scene."
+  },
+  {
+    "image_file": "train/00004_01_im.jpg",
+    "caption": "The track is scotland."
+  },
+  {
+    "image_file": "train/00005_00_im.jpg",
+    "caption": "gavroche is the ego car."
+  },
+  {
+    "image_file": "train/00005_00_im.jpg",
+    "caption": "There are 2 karts in the scene."
+  },
+  {
+    "image_file": "train/00005_00_im.jpg",
+    "caption": "The track is candela_city."
+  },
+  {
+    "image_file": "train/00005_00_im.jpg",
+    "caption": "adiumy is front and left of the ego car."
+  },
+  {
+    "image_file": "train/00005_01_im.jpg",
+    "caption": "gavroche is the ego car."
+  },
+  {
+    "image_file": "train/00005_01_im.jpg",
+    "caption": "There are 5 karts in the scene."
+  },
+  {
+    "image_file": "train/00005_01_im.jpg",
+    "caption": "The track is candela_city."
+  },
+  {
+    "image_file": "train/00005_01_im.jpg",
+    "caption": "tux is back and right of the ego car."
+  },
+  {
+    "image_file": "train/00005_01_im.jpg",
+    "caption": "gnu is back and right of the ego car."
+  },
+  {
+    "image_file": "train/00006_00_im.jpg",
+    "caption": "amanda is the ego car."
+  },
+  {
+    "image_file": "train/00006_00_im.jpg",
+    "caption": "There are 5 karts in the scene."
+  },
+  {
+    "image_file": "train/00006_00_im.jpg",
+    "caption": "The track is abyss."
+  },
+  {
+    "image_file": "train/00006_00_im.jpg",
+    "caption": "nolok is front and left of the ego car."
+  },
+  {
+    "image_file": "train/00006_00_im.jpg",
+    "caption": "gnu is front and left of the ego car."
+  },
+  {
+    "image_file": "train/00006_01_im.jpg",
+    "caption": "There are 3 karts in the scene."
+  },
+  {
+    "image_file": "train/00006_01_im.jpg",
+    "caption": "The track is abyss."
+  },
+  {
+    "image_file": "train/00007_00_im.jpg",
+    "caption": "puffy is the ego car."
+  },
+  {
+    "image_file": "train/00007_00_im.jpg",
+    "caption": "There are 6 karts in the scene."
+  },
+  {
+    "image_file": "train/00007_00_im.jpg",
+    "caption": "The track is tutorial."
+  },
+  {
+    "image_file": "train/00007_00_im.jpg",
+    "caption": "suzanne is front and right of the ego car."
+  },
+  {
+    "image_file": "train/00007_00_im.jpg",
+    "caption": "pidgin is front and right of the ego car."
+  },
+  {
+    "image_file": "train/00007_01_im.jpg",
+    "caption": "puffy is the ego car."
+  },
+  {
+    "image_file": "train/00007_01_im.jpg",
+    "caption": "There are 8 karts in the scene."
+  },
+  {
+    "image_file": "train/00007_01_im.jpg",
+    "caption": "The track is tutorial."
+  },
+  {
+    "image_file": "train/00007_01_im.jpg",
+    "caption": "hexley is back and left of the ego car."
+  },
+  {
+    "image_file": "train/00007_01_im.jpg",
+    "caption": "suzanne is front and right of the ego car."
+  },
+  {
+    "image_file": "train/00008_00_im.jpg",
+    "caption": "nolok is the ego car."
+  },
+  {
+    "image_file": "train/00008_00_im.jpg",
+    "caption": "There are 5 karts in the scene."
+  },
+  {
+    "image_file": "train/00008_00_im.jpg",
+    "caption": "The track is lighthouse."
+  },
+  {
+    "image_file": "train/00008_00_im.jpg",
+    "caption": "tux is front and left of the ego car."
+  },
+  {
+    "image_file": "train/00008_00_im.jpg",
+    "caption": "emule is front and right of the ego car."
+  },
+  {
+    "image_file": "train/00008_01_im.jpg",
+    "caption": "There are 1 karts in the scene."
+  },
+  {
+    "image_file": "train/00008_01_im.jpg",
+    "caption": "The track is lighthouse."
+  },
+  {
+    "image_file": "train/00009_00_im.jpg",
+    "caption": "adiumy is the ego car."
+  },
+  {
+    "image_file": "train/00009_00_im.jpg",
+    "caption": "There are 2 karts in the scene."
+  },
+  {
+    "image_file": "train/00009_00_im.jpg",
+    "caption": "The track is hacienda."
+  },
+  {
+    "image_file": "train/00009_00_im.jpg",
+    "caption": "pidgin is front and left of the ego car."
+  },
+  {
+    "image_file": "train/00009_01_im.jpg",
+    "caption": "adiumy is the ego car."
+  },
+  {
+    "image_file": "train/00009_01_im.jpg",
+    "caption": "There are 2 karts in the scene."
+  },
+  {
+    "image_file": "train/00009_01_im.jpg",
+    "caption": "The track is hacienda."
+  },
+  {
+    "image_file": "train/00009_01_im.jpg",
+    "caption": "tux is back and right of the ego car."
+  },
+  {
+    "image_file": "train/0000a_00_im.jpg",
+    "caption": "puffy is the ego car."
+  },
+  {
+    "image_file": "train/0000a_00_im.jpg",
+    "caption": "There are 3 karts in the scene."
+  },
+  {
+    "image_file": "train/0000a_00_im.jpg",
+    "caption": "The track is tutorial."
+  },
+  {
+    "image_file": "train/0000a_00_im.jpg",
+    "caption": "hexley is back and left of the ego car."
+  },
+  {
+    "image_file": "train/0000a_00_im.jpg",
+    "caption": "amanda is front and left of the ego car."
+  },
+  {
+    "image_file": "train/0000a_01_im.jpg",
+    "caption": "puffy is the ego car."
+  },
+  {
+    "image_file": "train/0000a_01_im.jpg",
+    "caption": "There are 3 karts in the scene."
+  },
+  {
+    "image_file": "train/0000a_01_im.jpg",
+    "caption": "The track is tutorial."
+  },
+  {
+    "image_file": "train/0000a_01_im.jpg",
+    "caption": "hexley is front and left of the ego car."
+  },
+  {
+    "image_file": "train/0000a_01_im.jpg",
+    "caption": "amanda is front and left of the ego car."
+  },
+  {
+    "image_file": "train/0000b_00_im.jpg",
+    "caption": "pidgin is the ego car."
+  },
+  {
+    "image_file": "train/0000b_00_im.jpg",
+    "caption": "There are 3 karts in the scene."
+  },
+  {
+    "image_file": "train/0000b_00_im.jpg",
+    "caption": "The track is snowtuxpeak."
+  },
+  {
+    "image_file": "train/0000b_00_im.jpg",
+    "caption": "amanda is front and right of the ego car."
+  },
+  {
+    "image_file": "train/0000b_00_im.jpg",
+    "caption": "tux is front and right of the ego car."
+  },
+  {
+    "image_file": "train/0000b_01_im.jpg",
+    "caption": "There are 3 karts in the scene."
+  },
+  {
+    "image_file": "train/0000b_01_im.jpg",
+    "caption": "The track is snowtuxpeak."
+  },
+  {
+    "image_file": "train/0000c_00_im.jpg",
+    "caption": "pidgin is the ego car."
+  },
+  {
+    "image_file": "train/0000c_00_im.jpg",
+    "caption": "There are 2 karts in the scene."
+  },
+  {
+    "image_file": "train/0000c_00_im.jpg",
+    "caption": "The track is snowtuxpeak."
+  },
+  {
+    "image_file": "train/0000c_00_im.jpg",
+    "caption": "gavroche is front and right of the ego car."
+  },
+  {
+    "image_file": "train/0000c_01_im.jpg",
+    "caption": "There are 2 karts in the scene."
+  },
+  {
+    "image_file": "train/0000c_01_im.jpg",
+    "caption": "The track is snowtuxpeak."
+  },
+  {
+    "image_file": "train/0000d_00_im.jpg",
+    "caption": "beastie is the ego car."
+  },
+  {
+    "image_file": "train/0000d_00_im.jpg",
+    "caption": "There are 5 karts in the scene."
+  },
+  {
+    "image_file": "train/0000d_00_im.jpg",
+    "caption": "The track is gran_paradiso_island."
+  },
+  {
+    "image_file": "train/0000d_00_im.jpg",
+    "caption": "wilber is front and left of the ego car."
+  },
+  {
+    "image_file": "train/0000d_00_im.jpg",
+    "caption": "emule is front and right of the ego car."
+  },
+  {
+    "image_file": "train/0000d_01_im.jpg",
+    "caption": "There are 1 karts in the scene."
+  },
+  {
+    "image_file": "train/0000d_01_im.jpg",
+    "caption": "The track is gran_paradiso_island."
+  },
+  {
+    "image_file": "train/0000e_00_im.jpg",
+    "caption": "gavroche is the ego car."
+  },
+  {
+    "image_file": "train/0000e_00_im.jpg",
+    "caption": "There are 2 karts in the scene."
+  },
+  {
+    "image_file": "train/0000e_00_im.jpg",
+    "caption": "The track is volcano_island."
+  },
+  {
+    "image_file": "train/0000e_00_im.jpg",
+    "caption": "adiumy is front and left of the ego car."
+  },
+  {
+    "image_file": "train/0000e_01_im.jpg",
+    "caption": "gavroche is the ego car."
+  },
+  {
+    "image_file": "train/0000e_01_im.jpg",
+    "caption": "There are 2 karts in the scene."
+  },
+  {
+    "image_file": "train/0000e_01_im.jpg",
+    "caption": "The track is volcano_island."
+  },
+  {
+    "image_file": "train/0000e_01_im.jpg",
+    "caption": "adiumy is front and left of the ego car."
+  },
+  {
+    "image_file": "train/0000f_00_im.jpg",
+    "caption": "konqi is the ego car."
+  },
+  {
+    "image_file": "train/0000f_00_im.jpg",
+    "caption": "There are 1 karts in the scene."
+  },
+  {
+    "image_file": "train/0000f_00_im.jpg",
+    "caption": "The track is scotland."
+  },
+  {
+    "image_file": "train/0000f_01_im.jpg",
+    "caption": "There are 3 karts in the scene."
+  },
+  {
+    "image_file": "train/0000f_01_im.jpg",
+    "caption": "The track is scotland."
+  },
+  {
+    "image_file": "train/00010_00_im.jpg",
+    "caption": "beastie is the ego car."
+  },
+  {
+    "image_file": "train/00010_00_im.jpg",
+    "caption": "There are 1 karts in the scene."
+  },
+  {
+    "image_file": "train/00010_00_im.jpg",
+    "caption": "The track is gran_paradiso_island."
+  },
+  {
+    "image_file": "train/00010_01_im.jpg",
+    "caption": "There are 1 karts in the scene."
+  },
+  {
+    "image_file": "train/00010_01_im.jpg",
+    "caption": "The track is gran_paradiso_island."
+  },
+  {
+    "image_file": "train/00011_00_im.jpg",
+    "caption": "suzanne is the ego car."
+  },
+  {
+    "image_file": "train/00011_00_im.jpg",
+    "caption": "There are 2 karts in the scene."
+  },
+  {
+    "image_file": "train/00011_00_im.jpg",
+    "caption": "The track is cocoa_temple."
+  },
+  {
+    "image_file": "train/00011_00_im.jpg",
+    "caption": "hexley is front and right of the ego car."
+  },
+  {
+    "image_file": "train/00011_01_im.jpg",
+    "caption": "There are 1 karts in the scene."
+  },
+  {
+    "image_file": "train/00011_01_im.jpg",
+    "caption": "The track is cocoa_temple."
+  },
+  {
+    "image_file": "train/00012_00_im.jpg",
+    "caption": "pidgin is the ego car."
+  },
+  {
+    "image_file": "train/00012_00_im.jpg",
+    "caption": "There are 4 karts in the scene."
+  },
+  {
+    "image_file": "train/00012_00_im.jpg",
+    "caption": "The track is snowtuxpeak."
+  },
+  {
+    "image_file": "train/00012_00_im.jpg",
+    "caption": "amanda is front and right of the ego car."
+  },
+  {
+    "image_file": "train/00012_00_im.jpg",
+    "caption": "tux is front and right of the ego car."
+  },
+  {
+    "image_file": "train/00012_01_im.jpg",
+    "caption": "There are 2 karts in the scene."
+  },
+  {
+    "image_file": "train/00012_01_im.jpg",
+    "caption": "The track is snowtuxpeak."
+  },
+  {
+    "image_file": "train/00013_00_im.jpg",
+    "caption": "konqi is the ego car."
+  },
+  {
+    "image_file": "train/00013_00_im.jpg",
+    "caption": "There are 2 karts in the scene."
+  },
+  {
+    "image_file": "train/00013_00_im.jpg",
+    "caption": "The track is scotland."
+  },
+  {
+    "image_file": "train/00013_00_im.jpg",
+    "caption": "hexley is front and right of the ego car."
+  },
+  {
+    "image_file": "train/00013_01_im.jpg",
+    "caption": "There are 5 karts in the scene."
+  },
+  {
+    "image_file": "train/00013_01_im.jpg",
+    "caption": "The track is scotland."
+  }
+]
