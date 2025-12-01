@@ -101,8 +101,12 @@ class CLIP(nn.Module):
         super().__init__()
         self.vision_encoder = vision_encoder
         self.text_encoder = text_encoder
-        # TODO: implement the rest components
-        raise NotImplementedError("Not implemented")
+        self.proj_dim = proj_dim
+        self.temperature = nn.Parameter(torch.tensor(temperature))
+
+        # Learnable linear projections for features
+        self.image_proj = nn.Linear(vision_encoder.config.hidden_size, proj_dim)
+        self.text_proj = nn.Linear(text_encoder.config.hidden_size, proj_dim)
 
     def encode_image(self, image: torch.Tensor) -> torch.Tensor:
         return self.vision_encoder(image)
