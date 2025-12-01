@@ -44,6 +44,7 @@ def clip_data_collator(features: list[dict[str, torch.Tensor]]) -> dict[str, tor
     Custom data collator for CLIP training.
     """
     # Get max sequence length
+    print(features)
     max_length = max(f["input_ids"].shape[0] for f in features)
 
     def pad_tensor(tensor, pad_value):
