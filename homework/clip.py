@@ -41,19 +41,64 @@ def load(model_name: str = "clip_model"):
 
 def clip_data_collator(features: list[dict[str, torch.Tensor]]) -> dict[str, torch.Tensor]:
     """
-    Custom data collator for CLIP training.
+    Custom data collator for CLIP training with null checks and filtering.
     """
-    # Get max sequence length
-    print(features)
+    valid = []
+    skipped = 0
+
+    # Filter out bad items
+    for f in features:
+        if (
+            f is None
+            or "input_ids" not in f
+            or "attention_mask" not in f
+            or "pixel_values" not in f
+            or "labels" not in f
+        ):
+            print("⚠️ Skipping malformed sample in collator:", f)
+            skipped += 1
+            continue
+        valid.append(f)
+
+    if len(valid) == 0:
+        return {
+            "input_ids": 1,
+            "attention_mask": 1,
+            "pixel_values": 1,
+            "labels": 1,
+        }
+
+    if skipped > 0:
+        print(f"⚠️ Skipped {skipped} malformed samples, continuing with {len(valid)} valid ones.")
+
+    features = valid  # only good ones
+
+    # Compute max length
     max_length = max(f["input_ids"].shape[0] for f in features)
 
     def pad_tensor(tensor, pad_value):
-        return torch.cat([tensor, torch.full((max_length - tensor.shape[0],), pad_value, dtype=tensor.dtype)])
+        pad_len = max_length - tensor.shape[0]
+        if pad_len > 0:
+            return torch.cat([tensor, torch.full((pad_len,), pad_value, dtype=tensor.dtype)])
+        else:
+            return tensor
 
-    input_ids = torch.stack([pad_tensor(f["input_ids"], pad_value=processor.tokenizer.eos_token_id) for f in features])
-    attention_mask = torch.stack([pad_tensor(f["attention_mask"], pad_value=0) for f in features])
-    pixel_values = torch.stack([f["pixel_values"] for f in features])  # assume all are same shape
-    labels = torch.stack([pad_tensor(f["labels"], pad_value=-100) for f in features])
+    input_ids = torch.stack([
+        pad_tensor(f["input_ids"], pad_value=processor.tokenizer.eos_token_id)
+        for f in features
+    ])
+
+    attention_mask = torch.stack([
+        pad_tensor(f["attention_mask"], pad_value=0)
+        for f in features
+    ])
+
+    pixel_values = torch.stack([f["pixel_values"] for f in features])
+
+    labels = torch.stack([
+        pad_tensor(f["labels"], pad_value=-100)
+        for f in features
+    ])
 
     return {
         "input_ids": input_ids.long(),
