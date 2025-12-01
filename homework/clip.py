@@ -188,8 +188,6 @@ def train(
     model.print_trainable_parameters()
     model.to(device)
     model.train()
-    model.gradient_checkpointing_enable()
-    model.enable_input_require_grads()
 
     # load dataset
     train_dataset = CaptionDataset("train", data_dir)
