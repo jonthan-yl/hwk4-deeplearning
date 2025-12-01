@@ -101,12 +101,8 @@ class CLIP(nn.Module):
         super().__init__()
         self.vision_encoder = vision_encoder
         self.text_encoder = text_encoder
-        self.proj_dim = proj_dim
-        self.temperature = nn.Parameter(torch.tensor(temperature))
-
-        # Learnable linear projections for features
-        self.image_proj = nn.Linear(vision_encoder.config.hidden_size, proj_dim)
-        self.text_proj = nn.Linear(text_encoder.config.hidden_size, proj_dim)
+        # TODO: implement the rest components
+        raise NotImplementedError("Not implemented")
 
     def encode_image(self, image: torch.Tensor) -> torch.Tensor:
         return self.vision_encoder(image)
@@ -164,7 +160,7 @@ class CLIP(nn.Module):
         self.vision_encoder.embeddings.register_forward_hook(make_inputs_require_grads)
         self.text_encoder.get_input_embeddings().register_forward_hook(make_inputs_require_grads)
 
-    def forward(
+def forward(
         self,
         pixel_values: torch.Tensor,
         input_ids: torch.Tensor,
@@ -172,26 +168,93 @@ class CLIP(nn.Module):
         labels: torch.Tensor = None,
         **kwargs,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        image_feats = self.encode_image(pixel_values)
-        text_feats = self.encode_text(input_ids, attention_mask)
+        """
+        Forward pass for the CLIP model.
+        Args:
+            pixel_values: The pixel values of the image.
+            input_ids: The input ids of the text.
+            attention_mask: The attention mask of the text.
+            labels: The labels for the text features.
+            (NOTE: you don't need to use the variable `labels`, this is just for compatibility with the Trainer class)
+            (Hint: refer to returned values of the __getitem__ method in the CaptionDatasetForTraining class)
+        Returns:
+            TODO: think about the what values should be returned
+        """
+        # Encode images
+        vision_outputs = self.vision_encoder(pixel_values)
+        # Use pooler output if available, otherwise use mean pooling over sequence
+        if hasattr(vision_outputs, 'pooler_output') and vision_outputs.pooler_output is not None:
+            image_features = vision_outputs.pooler_output
+        else:
+            # Mean pooling over spatial dimensions
+            image_features = vision_outputs.last_hidden_state.mean(dim=1)
+        
+        # Encode text
+        text_outputs = self.text_encoder(input_ids=input_ids, attention_mask=attention_mask)
+        # Use pooler output if available, otherwise use mean pooling with attention mask
+        if hasattr(text_outputs, 'pooler_output') and text_outputs.pooler_output is not None:
+            text_features = text_outputs.pooler_output
+        else:
+            # Mean pooling with attention mask
+            mask_expanded = attention_mask.unsqueeze(-1).expand(text_outputs.last_hidden_state.size()).float()
+            sum_embeddings = torch.sum(text_outputs.last_hidden_state * mask_expanded, dim=1)
+            sum_mask = torch.clamp(mask_expanded.sum(dim=1), min=1e-9)
+            text_features = sum_embeddings / sum_mask
+        
+        # Ensure consistent dtype with projection layers
+        image_features = image_features.to(self.vision_projection.weight.dtype)
+        text_features = text_features.to(self.text_projection.weight.dtype)
+        
+        # Project to common embedding space
+        image_embeds = self.vision_projection(image_features)
+        text_embeds = self.text_projection(text_features)
+        
+        # Normalize the embeddings
+        image_embeds = image_embeds / image_embeds.norm(dim=-1, keepdim=True)
+        text_embeds = text_embeds / text_embeds.norm(dim=-1, keepdim=True)
+        
+        # Return normalized embeddings and temperature
+        return image_embeds, text_embeds, self.temperature
 
-        # Normalize
-        image_feats = image_feats / image_feats.norm(dim=-1, keepdim=True)
-        text_feats = text_feats / text_feats.norm(dim=-1, keepdim=True)
 
-        # similarity
-        logits = torch.matmul(image_feats, text_feats.T) / self.temperature
-        return image_feats, text_feats, logits
-
-
-def compute_clip_loss(outputs, labels=None, num_items_in_batch=None):
-    image_feats, text_feats, logits = outputs
-    batch_size = image_feats.shape[0]
-    target = torch.arange(batch_size, device=image_feats.device)
-    loss_i2t = nn.CrossEntropyLoss()(logits, target)
-    loss_t2i = nn.CrossEntropyLoss()(logits.T, target)
-    return (loss_i2t + loss_t2i) / 2
-
+def compute_clip_loss(
+    outputs: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
+    labels: torch.Tensor,
+    num_items_in_batch: int | None = None,
+) -> torch.Tensor:
+    """
+    Compute the loss for the CLIP model.
+    Args:
+        outputs: A tuple containing the outputs of CLIP.forward().
+        labels: The labels for the text features.
+        (NOTE: you don't need to use the variable `labels`, this is just for compatibility with the Trainer class)
+        num_items_in_batch: The number of items in the batch.
+        (NOTE: you don't need to use the variable `num_items_in_batch`, this is just for compatibility with Trainer)
+    Returns:
+        The loss for the CLIP model.
+    """
+    image_embeds, text_embeds, temperature = outputs
+    
+    # Compute similarity matrix scaled by temperature
+    # Shape: (batch_size, batch_size)
+    logits = (image_embeds @ text_embeds.T) / temperature
+    
+    # Create labels for contrastive loss
+    # Each image should match with its corresponding text (diagonal elements)
+    batch_size = image_embeds.shape[0]
+    targets = torch.arange(batch_size, device=image_embeds.device)
+    
+    # Compute cross-entropy loss in both directions
+    # Image-to-text loss
+    loss_i2t = nn.functional.cross_entropy(logits, targets)
+    
+    # Text-to-image loss
+    loss_t2i = nn.functional.cross_entropy(logits.T, targets)
+    
+    # Average the two losses
+    loss = (loss_i2t + loss_t2i) / 2
+    
+    return loss
 
 
 def get_target_modules_for_lora(model: nn.Module) -> list[str]:
