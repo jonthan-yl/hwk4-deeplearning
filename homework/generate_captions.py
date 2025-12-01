@@ -83,7 +83,10 @@ def check_caption(info_file: str, view_index: int):
     plt.title(f"Frame {extract_frame_info(str(image_file))[0]}, View {view_index}")
     plt.show()
 
-def generate_all_captions(data_dir: str, output_file: str):
+def generate_all_captions(
+    data_dir: str = "data/train",
+    output_file: str = "data/train/generated_captions.json"
+):
     data_dir = Path(data_dir)
     output_file = Path(output_file)
 
