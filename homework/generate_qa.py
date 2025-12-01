@@ -348,14 +348,12 @@ def generate_all_qa_pairs(
         counter += 1
         if counter % 100 == 0:
             counter = 0
-            print(f"Processing file {counter}/{len(info_files)}: {info_path.name}")
+            print(f"Processing file {counter}/{len(info_files)}")
         with open(info_path) as f:
             info = json.load(f)
 
         num_views = len(info["detections"])
         base_name = info_path.stem.replace("_info", "")
-
-        print(f"Processing {info_path.name} with {num_views} views")
 
         for view_idx in range(num_views):
             qa_pairs = generate_qa_pairs(str(info_path), view_idx)
