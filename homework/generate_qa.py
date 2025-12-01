@@ -327,12 +327,12 @@ def generate_all_qa_pairs(
     output_file: str = "data/train/generated_qa_pairs.json"
 ):
     """
-    Iterate through all *_info.json files in data/train/ and generate QA pairs
-    for every view inside each file. Save all results into one JSON file.
-
-    Args:
-        data_dir: Directory containing *_info.json files.
-        output_file: Where to save the final JSON list.
+    Iterate through all *_info.json files in data/train/ and generate a flat list
+    of QA pairs in the format:
+    [
+      {"question": ..., "answer": ..., "image_file": ...},
+      ...
+    ]
     """
 
     data_dir = Path(data_dir)
@@ -343,12 +343,8 @@ def generate_all_qa_pairs(
     all_pairs = []
 
     print(f"Found {len(info_files)} info files in {data_dir}")
-    counter = 0
+
     for info_path in info_files:
-        counter += 1
-        if counter % 100 == 0:
-            counter = 0
-            print(f"Processing file {counter}/{len(info_files)}")
         with open(info_path) as f:
             info = json.load(f)
 
@@ -356,20 +352,36 @@ def generate_all_qa_pairs(
         base_name = info_path.stem.replace("_info", "")
 
         for view_idx in range(num_views):
+
+            # The corresponding image file
+            image_file = f"{base_name}_{view_idx:02d}_im.jpg"
+            image_path = data_dir / image_file
+
+            if not image_path.exists():
+                # Some datasets use PNG instead
+                png_path = data_dir / f"{base_name}_{view_idx:02d}_im.png"
+                if png_path.exists():
+                    image_path = png_path
+                else:
+                    print(f"Warning: could not find image {image_file} for {info_path.name}")
+                    continue
+
             qa_pairs = generate_qa_pairs(str(info_path), view_idx)
 
-            all_pairs.append({
-                "file": info_path.name,
-                "base_image_id": base_name,
-                "view_index": view_idx,
-                "qa_pairs": qa_pairs
-            })
+            # Flatten QA pairs into the required format
+            for qa in qa_pairs:
+                all_pairs.append({
+                    "question": qa["question"],
+                    "answer": qa["answer"],
+                    "image_file": str(image_path.name)
+                })
 
-    # Save final result
+    # Save output
     with open(output_file, "w") as f:
         json.dump(all_pairs, f, indent=2)
 
-    print(f"Saved {len(all_pairs)} QA entry sets to {output_file}")
+    print(f"Saved {len(all_pairs)} QA pairs to {output_file}")
+
 
 
 
