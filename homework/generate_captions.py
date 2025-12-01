@@ -123,6 +123,10 @@ def generate_all_captions(
             # Flatten QA pairs into the required format
             for caption in captions:
                 all_pairs.append(caption)
+                all_pairs.append({
+                    "caption": caption,
+                    "image_file": "train/" + str(image_path.name)
+                })
 
     # Save output
     with open(output_file, "w") as f:
