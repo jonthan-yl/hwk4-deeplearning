@@ -322,56 +322,56 @@ def check_qa_pairs(info_file: str, view_index: int):
         print(f"A: {qa['answer']}")
         print("-" * 50)
 
-    def generate_all_qa_pairs(
-        data_dir: str = "data/train",
-        output_file: str = "data/train/generated_qa_pairs.json"
-    ):
-        """
-        Iterate through all *_info.json files in data/train/ and generate QA pairs
-        for every view inside each file. Save all results into one JSON file.
+def generate_all_qa_pairs(
+    data_dir: str = "data/train",
+    output_file: str = "data/train/generated_qa_pairs.json"
+):
+    """
+    Iterate through all *_info.json files in data/train/ and generate QA pairs
+    for every view inside each file. Save all results into one JSON file.
 
-        Args:
-            data_dir: Directory containing *_info.json files.
-            output_file: Where to save the final JSON list.
-        """
+    Args:
+        data_dir: Directory containing *_info.json files.
+        output_file: Where to save the final JSON list.
+    """
 
-        data_dir = Path(data_dir)
-        output_file = Path(output_file)
+    data_dir = Path(data_dir)
+    output_file = Path(output_file)
 
-        info_files = sorted(data_dir.glob("*_info.json"))
+    info_files = sorted(data_dir.glob("*_info.json"))
 
-        all_pairs = []
+    all_pairs = []
 
-        print(f"Found {len(info_files)} info files in {data_dir}")
-        counter = 0
-        for info_path in info_files:
-            counter += 1
-            if counter % 100 == 0:
-                counter = 0
-                print(f"Processing file {counter}/{len(info_files)}: {info_path.name}")
-            with open(info_path) as f:
-                info = json.load(f)
+    print(f"Found {len(info_files)} info files in {data_dir}")
+    counter = 0
+    for info_path in info_files:
+        counter += 1
+        if counter % 100 == 0:
+            counter = 0
+            print(f"Processing file {counter}/{len(info_files)}: {info_path.name}")
+        with open(info_path) as f:
+            info = json.load(f)
 
-            num_views = len(info["detections"])
-            base_name = info_path.stem.replace("_info", "")
+        num_views = len(info["detections"])
+        base_name = info_path.stem.replace("_info", "")
 
-            print(f"Processing {info_path.name} with {num_views} views")
+        print(f"Processing {info_path.name} with {num_views} views")
 
-            for view_idx in range(num_views):
-                qa_pairs = generate_qa_pairs(str(info_path), view_idx)
+        for view_idx in range(num_views):
+            qa_pairs = generate_qa_pairs(str(info_path), view_idx)
 
-                all_pairs.append({
-                    "file": info_path.name,
-                    "base_image_id": base_name,
-                    "view_index": view_idx,
-                    "qa_pairs": qa_pairs
-                })
+            all_pairs.append({
+                "file": info_path.name,
+                "base_image_id": base_name,
+                "view_index": view_idx,
+                "qa_pairs": qa_pairs
+            })
 
-        # Save final result
-        with open(output_file, "w") as f:
-            json.dump(all_pairs, f, indent=2)
+    # Save final result
+    with open(output_file, "w") as f:
+        json.dump(all_pairs, f, indent=2)
 
-        print(f"Saved {len(all_pairs)} QA entry sets to {output_file}")
+    print(f"Saved {len(all_pairs)} QA entry sets to {output_file}")
 
 
 
@@ -384,7 +384,10 @@ You probably need to add additional commands to Fire below.
 
 
 def main():
-    fire.Fire({"check": check_qa_pairs})
+    fire.Fire({
+        "check": check_qa_pairs,
+        "generate_all": generate_all_qa_pairs,
+    })
 
 
 if __name__ == "__main__":
