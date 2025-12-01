@@ -124,7 +124,7 @@ def generate_all_captions(
             for caption in captions:
                 all_pairs.append({
                     "caption": caption,
-                    "image_file": "train/" + str(image_path.name)
+                    "image_path": "train/" + str(image_path.name)
                 })
 
     # Save output
