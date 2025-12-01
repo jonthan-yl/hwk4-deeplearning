@@ -373,7 +373,7 @@ def generate_all_qa_pairs(
                 all_pairs.append({
                     "question": qa["question"],
                     "answer": qa["answer"],
-                    "image_file": str(image_path.name)
+                    "image_file": "train/" + str(image_path.name)
                 })
 
     # Save output
