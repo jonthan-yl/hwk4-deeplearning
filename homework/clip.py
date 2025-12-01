@@ -96,13 +96,34 @@ class CaptionDatasetForTraining(Dataset):
 
 class CLIP(nn.Module):
     def __init__(
-        self, vision_encoder: nn.Module, text_encoder: nn.Module, proj_dim: int = 64, temperature: float = 0.07
+        self,
+        vision_encoder: nn.Module,
+        text_encoder: nn.Module,
+        proj_dim: int = 64,
+        temperature: float = 0.07
     ):
         super().__init__()
         self.vision_encoder = vision_encoder
         self.text_encoder = text_encoder
-        # TODO: implement the rest components
-        raise NotImplementedError("Not implemented")
+
+        # Vision and text encoders typically output hidden states of size hidden_dim
+        # We detect their hidden sizes dynamically.
+        if hasattr(vision_encoder, "config"):
+            vision_hidden = vision_encoder.config.hidden_size
+        else:
+            vision_hidden = vision_encoder.embed_dim
+
+        if hasattr(text_encoder, "config"):
+            text_hidden = text_encoder.config.hidden_size
+        else:
+            text_hidden = text_encoder.embed_dim
+
+        # Projection heads mapping encoder outputs into a joint embedding space
+        self.vision_projection = nn.Linear(vision_hidden, proj_dim, bias=False)
+        self.text_projection = nn.Linear(text_hidden, proj_dim, bias=False)
+
+        # Trainable temperature parameter for contrastive loss
+        self.temperature = nn.Parameter(torch.tensor(temperature))
 
     def encode_image(self, image: torch.Tensor) -> torch.Tensor:
         return self.vision_encoder(image)
