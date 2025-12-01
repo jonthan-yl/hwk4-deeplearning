@@ -206,7 +206,7 @@ def extract_track_info(info_path: str) -> str:
     """
     with open(info_path) as f:
         info = json.load(f)
-    print(info)
+
     if "track" in info:
         return info["track"]
 
