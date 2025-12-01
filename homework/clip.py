@@ -173,7 +173,6 @@ def train(
     vision_encoder = vlm.model.model.vision_model
     text_encoder = vlm.model.model.text_model
     model = CLIP(vision_encoder, text_encoder).to(device).bfloat16()
-    model.set_trainable_parameters()
 
     peft_config = LoraConfig(
         task_type=TaskType.FEATURE_EXTRACTION,
