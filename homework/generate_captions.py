@@ -1,34 +1,50 @@
 from pathlib import Path
-
 import fire
 from matplotlib import pyplot as plt
 
-from .generate_qa import draw_detections, extract_frame_info
-
+from generate_qa import draw_detections, extract_frame_info, extract_kart_objects, extract_track_info
 
 def generate_caption(info_path: str, view_index: int, img_width: int = 150, img_height: int = 100) -> list:
     """
-    Generate caption for a specific view.
+    Generate captions for a specific view.
     """
-    # 1. Ego car
-    # {kart_name} is the ego car.
+    captions = []
+
+    # Extract karts and ego
+    karts = extract_kart_objects(info_path, view_index, img_width, img_height)
+    if not karts:
+        return captions
+
+    ego_kart = next(k for k in karts if k.get("is_center_kart"))
+    num_karts = len(karts)
+    track_name = extract_track_info(info_path)
 
     # 2. Counting
-    # There are {num_karts} karts in the scenario.
+    captions.append(f"There are {num_karts} karts in the scenario.")
 
     # 3. Track name
-    # The track is {track_name}.
+    captions.append(f"The track is {track_name}.")
 
-    # 4. Relative position
-    # {kart_name} is {position} of the ego car.
+    # 4. Relative position of other karts
+    for kart in karts:
+        if kart["is_center_kart"]:
+            continue
+        dx = kart["center"][0] - ego_kart["center"][0]
+        dy = kart["center"][1] - ego_kart["center"][1]
 
-    raise NotImplementedError("Not implemented")
+        lr = "left" if dx < 0 else "right"
+        fb = "front" if dy < 0 else "behind"
+
+        captions.append(f"{kart['kart_name']} is to the {lr} of the ego car.")
+        captions.append(f"{kart['kart_name']} is {fb} the ego car.")
+
+    return captions
 
 
 def check_caption(info_file: str, view_index: int):
     captions = generate_caption(info_file, view_index)
 
-    print("\nCaption:")
+    print("\nCaptions:")
     print("-" * 50)
     for i, caption in enumerate(captions):
         print(f"{i + 1}. {caption}")
@@ -45,14 +61,6 @@ def check_caption(info_file: str, view_index: int):
     plt.axis("off")
     plt.title(f"Frame {extract_frame_info(str(image_file))[0]}, View {view_index}")
     plt.show()
-
-
-"""
-Usage Example: Visualize QA pairs for a specific file and view:
-   python generate_captions.py check --info_file ../data/valid/00000_info.json --view_index 0
-
-You probably need to add additional commands to Fire below.
-"""
 
 
 def main():

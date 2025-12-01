@@ -160,46 +160,27 @@ class CLIP(nn.Module):
         self.vision_encoder.embeddings.register_forward_hook(make_inputs_require_grads)
         self.text_encoder.get_input_embeddings().register_forward_hook(make_inputs_require_grads)
 
-    def forward(
-        self,
-        pixel_values: torch.Tensor,
-        input_ids: torch.Tensor,
-        attention_mask: torch.Tensor = None,
-        labels: torch.Tensor = None,
-        **kwargs,
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        """
-        Forward pass for the CLIP model.
-        Args:
-            pixel_values: The pixel values of the image.
-            input_ids: The input ids of the text.
-            attention_mask: The attention mask of the text.
-            labels: The labels for the text features.
-            (NOTE: you don't need to use the variable `labels`, this is just for compatibility with the Trainer class)
-            (Hint: refer to returned values of the __getitem__ method in the CaptionDatasetForTraining class)
-        Returns:
-            TODO: think about the what values should be returned
-        """
-        raise NotImplementedError("Not implemented")
+    def forward(self, pixel_values: torch.Tensor, input_ids: torch.Tensor, attention_mask: torch.Tensor = None, labels: torch.Tensor = None):
+        image_feats = self.encode_image(pixel_values)
+        text_feats = self.encode_text(input_ids, attention_mask)
+
+        # Normalize
+        image_feats = image_feats / image_feats.norm(dim=-1, keepdim=True)
+        text_feats = text_feats / text_feats.norm(dim=-1, keepdim=True)
+
+        # similarity
+        logits = torch.matmul(image_feats, text_feats.T) / self.temperature
+        return image_feats, text_feats, logits
 
 
-def compute_clip_loss(
-    outputs: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
-    labels: torch.Tensor,
-    num_items_in_batch: int | None = None,
-) -> torch.Tensor:
-    """
-    Compute the loss for the CLIP model.
-    Args:
-        outputs: A tuple containing the outputs of CLIP.forward().
-        labels: The labels for the text features.
-        (NOTE: you don't need to use the variable `labels`, this is just for compatibility with the Trainer class)
-        num_items_in_batch: The number of items in the batch.
-        (NOTE: you don't need to use the variable `num_items_in_batch`, this is just for compatibility with Trainer)
-    Returns:
-        The loss for the CLIP model.
-    """
-    raise NotImplementedError("Not implemented")
+def compute_clip_loss(outputs, labels=None, num_items_in_batch=None):
+    image_feats, text_feats, logits = outputs
+    batch_size = image_feats.shape[0]
+    target = torch.arange(batch_size, device=image_feats.device)
+    loss_i2t = nn.CrossEntropyLoss()(logits, target)
+    loss_t2i = nn.CrossEntropyLoss()(logits.T, target)
+    return (loss_i2t + loss_t2i) / 2
+
 
 
 def get_target_modules_for_lora(model: nn.Module) -> list[str]:
