@@ -223,61 +223,61 @@ class CLIP(nn.Module):
         self.vision_encoder.embeddings.register_forward_hook(make_inputs_require_grads)
         self.text_encoder.get_input_embeddings().register_forward_hook(make_inputs_require_grads)
 
-def forward(
-        self,
-        pixel_values: torch.Tensor,
-        input_ids: torch.Tensor,
-        attention_mask: torch.Tensor = None,
-        labels: torch.Tensor = None,
-        **kwargs,
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        """
-        Forward pass for the CLIP model.
-        Args:
-            pixel_values: The pixel values of the image.
-            input_ids: The input ids of the text.
-            attention_mask: The attention mask of the text.
-            labels: The labels for the text features.
-            (NOTE: you don't need to use the variable `labels`, this is just for compatibility with the Trainer class)
-            (Hint: refer to returned values of the __getitem__ method in the CaptionDatasetForTraining class)
-        Returns:
-            TODO: think about the what values should be returned
-        """
-        # Encode images
-        vision_outputs = self.vision_encoder(pixel_values)
-        # Use pooler output if available, otherwise use mean pooling over sequence
-        if hasattr(vision_outputs, 'pooler_output') and vision_outputs.pooler_output is not None:
-            image_features = vision_outputs.pooler_output
-        else:
-            # Mean pooling over spatial dimensions
-            image_features = vision_outputs.last_hidden_state.mean(dim=1)
-        
-        # Encode text
-        text_outputs = self.text_encoder(input_ids=input_ids, attention_mask=attention_mask)
-        # Use pooler output if available, otherwise use mean pooling with attention mask
-        if hasattr(text_outputs, 'pooler_output') and text_outputs.pooler_output is not None:
-            text_features = text_outputs.pooler_output
-        else:
-            # Mean pooling with attention mask
-            mask_expanded = attention_mask.unsqueeze(-1).expand(text_outputs.last_hidden_state.size()).float()
-            sum_embeddings = torch.sum(text_outputs.last_hidden_state * mask_expanded, dim=1)
-            sum_mask = torch.clamp(mask_expanded.sum(dim=1), min=1e-9)
-            text_features = sum_embeddings / sum_mask
-        
-        # Ensure consistent dtype with projection layers
-        image_features = image_features.to(self.vision_projection.weight.dtype)
-        text_features = text_features.to(self.text_projection.weight.dtype)
-        
-        # Project to common embedding space
-        image_embeds = self.vision_projection(image_features)
-        text_embeds = self.text_projection(text_features)
-        
-        # Normalize the embeddings
-        image_embeds = image_embeds / image_embeds.norm(dim=-1, keepdim=True)
-        text_embeds = text_embeds / text_embeds.norm(dim=-1, keepdim=True)
-        
-        # Return normalized embeddings and temperature
-        return image_embeds, text_embeds, self.temperature
+    def forward(
+            self,
+            pixel_values: torch.Tensor,
+            input_ids: torch.Tensor,
+            attention_mask: torch.Tensor = None,
+            labels: torch.Tensor = None,
+            **kwargs,
+        ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+            """
+            Forward pass for the CLIP model.
+            Args:
+                pixel_values: The pixel values of the image.
+                input_ids: The input ids of the text.
+                attention_mask: The attention mask of the text.
+                labels: The labels for the text features.
+                (NOTE: you don't need to use the variable `labels`, this is just for compatibility with the Trainer class)
+                (Hint: refer to returned values of the __getitem__ method in the CaptionDatasetForTraining class)
+            Returns:
+                TODO: think about the what values should be returned
+            """
+            # Encode images
+            vision_outputs = self.vision_encoder(pixel_values)
+            # Use pooler output if available, otherwise use mean pooling over sequence
+            if hasattr(vision_outputs, 'pooler_output') and vision_outputs.pooler_output is not None:
+                image_features = vision_outputs.pooler_output
+            else:
+                # Mean pooling over spatial dimensions
+                image_features = vision_outputs.last_hidden_state.mean(dim=1)
+            
+            # Encode text
+            text_outputs = self.text_encoder(input_ids=input_ids, attention_mask=attention_mask)
+            # Use pooler output if available, otherwise use mean pooling with attention mask
+            if hasattr(text_outputs, 'pooler_output') and text_outputs.pooler_output is not None:
+                text_features = text_outputs.pooler_output
+            else:
+                # Mean pooling with attention mask
+                mask_expanded = attention_mask.unsqueeze(-1).expand(text_outputs.last_hidden_state.size()).float()
+                sum_embeddings = torch.sum(text_outputs.last_hidden_state * mask_expanded, dim=1)
+                sum_mask = torch.clamp(mask_expanded.sum(dim=1), min=1e-9)
+                text_features = sum_embeddings / sum_mask
+            
+            # Ensure consistent dtype with projection layers
+            image_features = image_features.to(self.vision_projection.weight.dtype)
+            text_features = text_features.to(self.text_projection.weight.dtype)
+            
+            # Project to common embedding space
+            image_embeds = self.vision_projection(image_features)
+            text_embeds = self.text_projection(text_features)
+            
+            # Normalize the embeddings
+            image_embeds = image_embeds / image_embeds.norm(dim=-1, keepdim=True)
+            text_embeds = text_embeds / text_embeds.norm(dim=-1, keepdim=True)
+            
+            # Return normalized embeddings and temperature
+            return image_embeds, text_embeds, self.temperature
 
 
 def compute_clip_loss(
