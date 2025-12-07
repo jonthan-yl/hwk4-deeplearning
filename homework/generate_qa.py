@@ -142,6 +142,7 @@ def extract_kart_objects(
         info = json.load(f)
 
     detections_per_view = info["detections"]
+    karts_list = info["karts"]
     if view_index >= len(detections_per_view):
         return []
 
@@ -174,7 +175,7 @@ def extract_kart_objects(
         cx = (x1s + x2s) / 2
         cy = (y1s + y2s) / 2
 
-        kart_name = info["instances"][str(instance_id)]["name"] if "instances" in info else f"kart_{instance_id}"
+        kart_name =  karts_list[instance_id]
 
         karts.append({
             "instance_id": instance_id,
