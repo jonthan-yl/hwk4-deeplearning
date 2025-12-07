@@ -55,7 +55,6 @@ def clip_data_collator(features: list[dict[str, torch.Tensor]]) -> dict[str, tor
             or "pixel_values" not in f
             or "labels" not in f
         ):
-            print("⚠️ Skipping malformed sample in collator:", f)
             skipped += 1
             continue
         valid.append(f)
@@ -67,9 +66,6 @@ def clip_data_collator(features: list[dict[str, torch.Tensor]]) -> dict[str, tor
             "pixel_values": 1,
             "labels": 1,
         }
-
-    if skipped > 0:
-        print(f"⚠️ Skipped {skipped} malformed samples, continuing with {len(valid)} valid ones.")
 
     features = valid  # only good ones
 
